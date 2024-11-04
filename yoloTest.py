@@ -2,11 +2,11 @@ from ultralytics import YOLO
 import cv2
 
 # Load the YOLOv8 model (Change to yolov8m.pt for the medium version)
-model = YOLO('yolov8s.pt')
+model = YOLO('models/best.pt')
 category_index = model.names
 
 # NOTE: change the path below for your corresponding video path
-cap = cv2.VideoCapture('input_videos/videoplayback.mp4')
+#cap = cv2.VideoCapture('input_videos/videoplayback.mp4')
 cap = cv2.VideoCapture('../../university_crosswalk.mp4')
 
 # Get the original video's coordinates: width, height, and FPS
