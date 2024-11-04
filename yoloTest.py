@@ -7,6 +7,7 @@ category_index = model.names
 
 # NOTE: change the path below for your corresponding video path
 cap = cv2.VideoCapture('input_videos/videoplayback.mp4')
+cap = cv2.VideoCapture('../../university_crosswalk.mp4')
 
 # Get the original video's coordinates: width, height, and FPS
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
