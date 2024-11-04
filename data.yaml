@@ -1,0 +1,5 @@
+train: /content/VisionAssist_SYSC4907/DataSet/images/train
+val: /content/VisionAssist_SYSC4907/DataSet/images/train
+
+nc: 1
+names: ['crosswalk']
