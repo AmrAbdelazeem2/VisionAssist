@@ -41,7 +41,7 @@ def detect_and_section(frame):
         cls = int(result.cls.cpu().numpy()) # class ID
 
         
-        if conf > 0.5:
+        if conf > 0.1:
             startX, startY, endX, endY = box.astype(int)
             x_center = (startX + endX) / 2
 
