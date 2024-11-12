@@ -1,5 +1,5 @@
-train: /content/VisionAssist_SYSC4907/DataSet/test/images/train
-val: /content/VisionAssist_SYSC4907/DataSet/test/images/train
+train: /content/drive/MyDrive/dataSetForTraining_Capstone/test/images/train
+val: /content/drive/MyDrive/dataSetForTraining_Capstone/test/images/train
 
 nc: 81  # Total number of classes
 
