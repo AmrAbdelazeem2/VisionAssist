@@ -1,6 +1,6 @@
-train: D:/content/drive/MyDrive/dataSetForTraining_Capstone/NewDataSet/WOTR_YOLO/train
-val: D:/content/drive/MyDrive/dataSetForTraining_Capstone/NewDataSet/WOTR_YOLO/valid
-test: D:/content/drive/MyDrive/dataSetForTraining_Capstone/NewDataSet/WOTR_YOLO/test
+train: /content/drive/MyDrive/dataSetForTraining_Capstone/NewDataSet/WOTR_YOLO/train
+val: /content/drive/MyDrive/dataSetForTraining_Capstone/NewDataSet/WOTR_YOLO/valid
+test: /content/drive/MyDrive/dataSetForTraining_Capstone/NewDataSet/WOTR_YOLO/test
 nc: 20
 names: 
 - tree
