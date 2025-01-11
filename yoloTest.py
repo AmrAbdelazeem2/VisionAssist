@@ -2,11 +2,11 @@ from ultralytics import YOLO
 import cv2
 
 # Load the YOLOv8 model (Change to yolov8m.pt for the medium version)
-model = YOLO('./runs/detect/train7/weights/best.pt')
+model = YOLO('best.pt')
 category_index = model.names
 
 # NOTE: change the path below for your corresponding video path
-cap = cv2.VideoCapture('input_videos/videoplayback.mp4')
+cap = cv2.VideoCapture('input_videos/university_walking.mp4')
 
 # Get the original video's coordinates: width, height, and FPS
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -40,7 +40,7 @@ def detect_and_section(frame):
         cls = int(result.cls.cpu().numpy()) # class ID
 
         
-        if conf > 0.1:
+        if conf > 0.75:
             startX, startY, endX, endY = box.astype(int)
             x_center = (startX + endX) / 2
 
