@@ -5,7 +5,7 @@ import cv2
 model = YOLO('best.pt')
 category_index = model.names
 
-# NOTE: change the path below for another video path
+# NOTE: change the path below for your corresponding video path
 cap = cv2.VideoCapture('input_videos/university_walking.mp4')
 
 # Get the original video's coordinates: width, height, and FPS
@@ -13,11 +13,14 @@ width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = int(cap.get(cv2.CAP_PROP_FPS))
 
+# Process only 2 frames per second
+process_fps = 4
+frame_interval = fps // process_fps
+
 # video output writer
-output_file = 'processed_videos/processed_output.mp4'
+output_file = 'processed_videos/processed_output.mp4' # update this path if you want a specific output video name 
 fourcc = cv2.VideoWriter_fourcc(*'mp4v') 
 out = cv2.VideoWriter(output_file, fourcc, fps, (width, height))
-
 
 """Detect the objects in the frame using the chosen model,
     and link them to some section in the image (e.g. left_section)
@@ -30,7 +33,7 @@ def detect_and_section(frame):
     left_section = width // 3
     right_section = 2 * width // 3
     
-    # PerfLorm object detection on the frame
+    # Perform object detection on the frame
     results = model(frame)
 
     # iterate the detected objects in the frame
@@ -39,7 +42,6 @@ def detect_and_section(frame):
         conf = result.conf.cpu().numpy()    # confidence score
         cls = int(result.cls.cpu().numpy()) # class ID
 
-        
         if conf > 0.75:
             startX, startY, endX, endY = box.astype(int)
             x_center = (startX + endX) / 2
@@ -59,30 +61,34 @@ def detect_and_section(frame):
             # Put label and section info on the frame
             label_text = f'{label}: {section}'
             cv2.putText(frame, label_text, (startX, startY - 10),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
 
             # Print feedback (NOTE: just for debug purposes and to be deleted)
             print(f"Detected {label} in the {section} section")
 
-    
     cv2.line(frame, (left_section, 0), (left_section, height), (0, 255, 0), 2)
     cv2.line(frame, (right_section, 0), (right_section, height), (0, 255, 0), 2)
     return frame
 
-
+frame_count = 0
 while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
         break
-    
-    frame_with_detections = detect_and_section(frame)
 
-    # show the process frame (NOTE: for debug and visualization purpose only )
-    cv2.imshow('YOLOv8 Real-time Detection', frame_with_detections)
-    
-    out.write(frame_with_detections)
+    # Process only every `frame_interval` frame
+    if frame_count % frame_interval == 0:
+        frame_with_detections = detect_and_section(frame)
 
-    # quit if 'q' is pressed
+        # Show the processed frame (NOTE: for debug and visualization purposes only)
+        cv2.imshow('YOLOv8 Real-time Detection', frame_with_detections)
+
+        # Write the processed frame to the output file
+        out.write(frame_with_detections)
+
+    frame_count += 1
+
+    # Quit if 'q' is pressed
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
