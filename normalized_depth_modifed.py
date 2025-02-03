@@ -6,9 +6,14 @@ import numpy as np
 import torch
 from ultralytics import YOLO
 
-# Base directory and adding Depth-Anything-V2 to sys.path
-base_dir = r"C:\Users\amrkh\OneDrive\Desktop\VisionAssist_SYSC4907"
+# Get the directory of the script
+base_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Define relative path for Depth-Anything
 depth_anything_path = os.path.join(base_dir, "Depth-Anything-V2")
+
+print("Base Directory:", base_dir)
+print("Depth Anything Path:", depth_anything_path)
 if depth_anything_path not in sys.path:
     sys.path.append(depth_anything_path)
 
