@@ -5,3 +5,6 @@ timm
 torch 
 torchvision 
 matplotlib
+
+# For audio
+pyttsx3
