@@ -6,15 +6,15 @@ import numpy as np
 from ultralytics import YOLO
 
 # Load the YOLOv8 model
-model = YOLO('best.pt')
-category_index = model.names
+model_yolo = YOLO('best.pt')
+category_index = model_yolo.names
 
 # Paths for depth processing
-base_dir = r"C:\Users\amrkh\OneDrive\Desktop\VisionAssist_SYSC4907"
-depth_project_dir = os.path.join(base_dir, "Depth-Anything-V2")
-temp_image_folder = os.path.join(base_dir, "temp_images")
-depth_output_folder = os.path.join(base_dir, "depth_outputs")
-processed_frames_folder = os.path.join(base_dir, "processed_frames")
+base_dir = "/Users/samehgawish/Desktop/Capstone/ProjectRepo/VisionAssist_SYSC4907"
+depth_project_dir = os.path.join(base_dir, "Depth-Anything-V2/Depth-Anything-V2")
+temp_image_folder = os.path.join(base_dir, "temp_original_images")
+depth_output_folder = os.path.join(base_dir, "depth_outputs_images")
+processed_frames_folder = os.path.join(base_dir, "processed_frames_images")
 model_encoder = "vits"
 
 # Ensure necessary directories exist
@@ -23,7 +23,7 @@ os.makedirs(depth_output_folder, exist_ok=True)
 os.makedirs(processed_frames_folder, exist_ok=True)
 
 # Video input path
-cap = cv2.VideoCapture(os.path.join(base_dir, 'input_videos', 'university_crosswalk.mp4'))
+cap = cv2.VideoCapture('university_crosswalk.mp4')
 if not cap.isOpened():
     print("Error: Unable to open video file.")
     exit()
@@ -35,13 +35,17 @@ processed_frame_count = 0
 
 # Function to run the Depth-Anything model
 def process_depth(input_path, output_path):
-    os.chdir(depth_project_dir)
+    run_script_path = os.path.join(depth_project_dir, "run.py")
+    env = os.environ.copy()
+    env["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+
     subprocess.run([
-        "python", "run.py",
+        "python",
+        run_script_path,
         "--encoder", model_encoder,
         "--img-path", input_path,
         "--outdir", output_path
-    ], check=True)
+    ], check=True, env=env)
 
 # Function to wait for the depth output file
 def wait_for_depth_output(file_path, timeout=10):
@@ -55,12 +59,14 @@ def wait_for_depth_output(file_path, timeout=10):
 
 # Function to assign proximity levels based on depth
 def proximity_level(depth_value):
-    if depth_value <= 1.0:  # Close range (in meters or arbitrary units)
+    if depth_value >= 2000:
         return "Very Close"
-    elif depth_value <= 3.0:
+    elif depth_value >= 150:
         return "Close"
     else:
         return "Far"
+
+
 
 while cap.isOpened():
     ret, frame = cap.read()
@@ -85,17 +91,23 @@ while cap.isOpened():
 
         # Wait for the depth model to generate the output
         if wait_for_depth_output(depth_image_path, 60):
-            depth_image = cv2.imread(depth_image_path, cv2.IMREAD_UNCHANGED)
+            depth_image = cv2.imread(depth_image_path, cv2.IMREAD_ANYDEPTH)
+
             if depth_image is None:
                 print(f"Error: Failed to load depth image for frame {processed_frame_count}.")
                 continue
+            else:
+                print("Depth dtype:", depth_image.dtype)
+                print("Depth shape:", depth_image.shape)
+                print("Depth min/max:", depth_image.min(), depth_image.max())
+                
         else:
             print(f"Error: Depth output file not found for frame {processed_frame_count} after timeout.")
             continue
 
         # Pass the frame to YOLO for object detection
         print(f"Processing YOLO object detection for frame {processed_frame_count}...")
-        results = model(frame)
+        results = model_yolo(frame)
         for result in results[0].boxes:
             box = result.xyxy[0].cpu().numpy()  # bounding box
             conf = float(result.conf.cpu().numpy())    # Extract scalar value for confidence score
@@ -107,13 +119,33 @@ while cap.isOpened():
 
                 # Crop the corresponding region from the depth map
                 cropped_depth = depth_image[startY:endY, startX:endX]
+
+
+                if cropped_depth.size == 0:
+                    print("No valid depth in bounding box.")
+                else:
+                    print("Crop min/max:", cropped_depth.min(), cropped_depth.max(), cropped_depth.shape)
+
                 if cropped_depth.size > 0:
                     # Flatten and sort the depth values to find the k closest points
                     depth_values = cropped_depth.flatten()
+                    valid_values = depth_values[depth_values > 0] 
+                    sorted_values = np.sort(valid_values)
+
+                    # ignoring the 10% max points as outliers
+                    cutoff_index = int(0.95 * len(sorted_values))  # 90% index
+                    truncated_values = sorted_values[:cutoff_index]
+
+
                     k = 10  # Number of closest points to consider
-                    k_closest_points = np.sort(depth_values)[:k]
-                    average_k_closest_depth = np.mean(k_closest_points)
-                    
+
+                    if truncated_values.size >= k:
+                        k_closest_points = truncated_values[-k:]  # last k = largest k
+                        average_k_closest_depth = np.median(k_closest_points)
+                    else:
+                        # If not enough data for k, just take the median of what's left
+                        average_k_closest_depth = np.median(truncated_values)
+                                
                     # Determine proximity level
                     proximity = proximity_level(average_k_closest_depth)
                 else:
