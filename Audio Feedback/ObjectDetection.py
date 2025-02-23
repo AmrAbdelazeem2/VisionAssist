@@ -11,6 +11,8 @@ DETECTED_OBJECTS = [
 
 LOCATIONS = ["left", "middle", "right"]
 
+DISTANCES = ["immediate", "close", "moderate", "far", "very far"]
+
 def generate_random_objects():
     """Generates a random list of detected objects with different distances and locations."""
     num_objects = random.randint(1, 5)  # Random number of detected objects per cycle
@@ -19,7 +21,7 @@ def generate_random_objects():
     for _ in range(num_objects):
         obj = {
             "label": random.choice(DETECTED_OBJECTS),
-            "distance": round(random.uniform(1.0, 10.0), 2),  # Random distance between 1m - 10m
+            "distance": random.choice(DISTANCES),  # Random distance between 1m - 10m
             "location": random.choice(LOCATIONS)
         }
         detected_data["objects"].append(obj)

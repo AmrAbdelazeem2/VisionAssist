@@ -13,6 +13,6 @@ if __name__ == "__main__":
     audio_process = multiprocessing.Process(target=generate_audio_feedback, args=(queue,))
     audio_process.start()
 
-    # Keep the main script running
+    # keep  main script running
     detection_process.join()
     audio_process.join()
