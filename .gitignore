@@ -1,2 +1,6 @@
 *.mp4
 *.pt
+*.jpg
+*.png
+*.pyc
+Depth-Anything-V2/*
