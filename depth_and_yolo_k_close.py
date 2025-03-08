@@ -76,38 +76,16 @@ def get_object_depth_k_median(depth_map, box_coords, k=50, iqr_multiplier=1.5):
     
     return np.median(filtered_points)
 
-def proximity_level(depth_value, min_depth, max_depth):
-    """
-    Given an object's depth value along with the min and max depths for the current frame,
-    return a proximity level string relative to the frame.
-    
-    Since higher values mean closer:
-      - We compute a normalized value: (max_depth - depth_value) / (max_depth - min_depth)
-      - A higher normalized value means the object is relatively closer.
-    """
-    if max_depth == min_depth:
-        return "Close"  # fallback if all objects have the same depth
-    normalized = (max_depth - depth_value) / (max_depth - min_depth)
-    if normalized >= 0.66:
-        return "Very Close"
-    elif normalized >= 0.33:
-        return "Close"
-    else:
-        return "Far"
 
+# Example integration into the object detection code:
 def detect_and_section(frame, depth_map):
     """
     Run object detection, determine the object's image section, and overlay
-    both detection and depth info onto the frame. The proximity level is computed
-    relative to all detected objects in the frame.
+    both detection and depth info onto the frame using the k-close point median method.
     """
     height, width, _ = frame.shape
     left_section = width // 3
     right_section = 2 * width // 3
-    
-    # List to hold information for each detected object:
-    # Each element will be a tuple: (box_coords, label, section, depth)
-    objects_info = []
     
     # Run YOLO detection on the frame
     results = model(frame)
@@ -128,46 +106,27 @@ def detect_and_section(frame, depth_map):
             else:
                 section = 'center'
             
-            # Get object depth using the k-close median method
+            # Get object depth using the new k-close median method
             object_depth = get_object_depth_k_median(depth_map, (startX, startY, endX, endY))
-            objects_info.append(((startX, startY, endX, endY), category_index[cls], section, object_depth))
-    
-    # If no objects were detected, return the original frame
-    if not objects_info:
-        return frame
-    
-    # Compute the min and max depth among the detected objects for this frame
-    depths = [info[3] for info in objects_info if info[3] is not None]
-    if depths:
-        min_depth = min(depths)
-        max_depth = max(depths)
-    else:
-        min_depth = max_depth = 0
-
-    # Now, annotate each detected object with its proximity level (relative to the frame)
-    for (startX, startY, endX, endY), label, section, object_depth in objects_info:
-        if object_depth is not None:
-            prox_level = proximity_level(object_depth, min_depth, max_depth)
-            depth_text = f"Depth: {object_depth:.2f} ({prox_level})"
-        else:
-            depth_text = "Depth: N/A"
-        
-        # Draw bounding box and overlay text on the frame
-        cv2.rectangle(frame, (startX, startY), (endX, endY), (255, 0, 0), 2)
-        label_text = f'{label}: {section}, {depth_text}'
-        cv2.putText(frame, label_text, (startX, startY - 10),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
-        
-        # Debug print
-        print(f"Detected {label} in {section} section with {depth_text}")
+            depth_text = f"Depth: {object_depth:.2f}" if object_depth is not None else "Depth: N/A"
+            
+            # Draw bounding box and overlay text on the frame
+            cv2.rectangle(frame, (startX, startY), (endX, endY), (255, 0, 0), 2)
+            label = category_index[cls]
+            label_text = f'{label}: {section}, {depth_text}'
+            cv2.putText(frame, label_text, (startX, startY - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+            
+            # Debug print
+            print(f"Detected {label} in {section} section with {depth_text}")
     
     # Draw dividing lines for the image sections
     cv2.line(frame, (left_section, 0), (left_section, height), (0, 255, 0), 2)
     cv2.line(frame, (right_section, 0), (right_section, height), (0, 255, 0), 2)
-    
     return frame
 
 # Video capture initialization
+# university_crosswalk
 cap = cv2.VideoCapture('input_videos/university_walking.mp4')
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -192,7 +151,7 @@ while cap.isOpened():
         # Get depth map for the current frame
         depth_map = get_depth_map(frame)
         
-        # Detect objects and overlay depth and proximity information
+        # Detect objects and overlay depth information
         frame_with_detections = detect_and_section(frame, depth_map)
         
         # Show and write the processed frame

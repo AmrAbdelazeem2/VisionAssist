@@ -103,7 +103,7 @@ def detect_and_section(frame, depth_map):
 
 # Video capture initialization
 # university_crosswalk
-cap = cv2.VideoCapture('input_videos/university_crosswalk.mp4')
+cap = cv2.VideoCapture('input_videos/university_walking.mp4')
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = int(cap.get(cv2.CAP_PROP_FPS))
