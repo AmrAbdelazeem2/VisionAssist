@@ -11,7 +11,7 @@ DETECTED_OBJECTS = [
 
 LOCATIONS = ["left", "middle", "right"]
 
-DISTANCES = ["immediate", "close", "moderate", "far", "very far"]
+DISTANCES = ["immediate", "close", "moderate", "far", "very far"] #  "Very Close", "Close", "Far"
 
 def generate_random_objects():
     """Generates a random list of detected objects with different distances and locations."""
