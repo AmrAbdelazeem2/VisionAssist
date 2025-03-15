@@ -1,0 +1,11 @@
+ultralytics
+opencv-python
+#consider using opencv-python-headless instead of opencv-python if you don't need GUI
+#opencv-python-headless
+numpy
+transformers
+Pillow
+scikit-learn
+pyttsx3
+torch
+torchvision
