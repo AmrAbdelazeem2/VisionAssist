@@ -119,7 +119,7 @@ def detection_loop(queue, video_path, process_fps):
     cv2.destroyAllWindows()
 
 # To run the code:
-# python main.py --video "../input_videos/university_crosswalk.mp4" --fps 2
+# python main_videos.py --video "../input_videos/university_crosswalk.mp4" --fps 2
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Object detection with depth estimation and audio feedback.")
     parser.add_argument("--video", type=str, default="../input_videos/university_crosswalk.mp4", help="Path to input video file.")

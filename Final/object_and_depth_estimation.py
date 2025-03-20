@@ -126,11 +126,11 @@ def detect_and_section(frame, depth_map):
     return frame
 
 if __name__ == "__main__":
-    cap = cv2.VideoCapture(r'../input_videos/university_crosswalk.mp4')
+    cap = cv2.VideoCapture(r'../input_videos/university_crosswalk2.mp4')
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = int(cap.get(cv2.CAP_PROP_FPS))
-    process_fps = 2
+    process_fps = 1
     frame_interval = fps // process_fps
     output_file = '../processed_videos/processed_output.mp4'
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
