@@ -89,12 +89,12 @@ def compute_iou(box1, box2):
     union_area = box1_area + box2_area - inter_area
     return inter_area / union_area if union_area != 0 else 0
 
-def detection_loop_folder(queue, folder_path, process_interval=3):
+def detection_loop_folder(queue, folder_path):
     while True:
         # List all JPEG files in the buffer folder
         frame_files = [f for f in os.listdir(folder_path) if f.endswith(".jpg")]
         if not frame_files:
-            time.sleep(1)
+            time.sleep(0.1)  # Wait briefly if no file is available
             continue
 
         # Sort files by modification time (oldest first)
@@ -110,7 +110,6 @@ def detection_loop_folder(queue, folder_path, process_interval=3):
         process_frame(frame, queue)
         # Remove frame after processing
         os.remove(oldest_frame)
-        time.sleep(process_interval)
 
 if __name__ == "__main__":
     import argparse
@@ -118,11 +117,10 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Image detection with depth estimation and audio feedback from a folder.")
     parser.add_argument("--folder", type=str, default="./buffer", help="Path to the folder containing saved frames.")
-    parser.add_argument("--interval", type=int, default=3, help="Interval (in seconds) between processing frames.")
     args = parser.parse_args()
 
     q = multiprocessing.Queue()
-    detection_process = multiprocessing.Process(target=detection_loop_folder, args=(q, args.folder, args.interval))
+    detection_process = multiprocessing.Process(target=detection_loop_folder, args=(q, args.folder))
     detection_process.start()
 
     audio_process = multiprocessing.Process(target=generate_audio_feedback, args=(q,))
